@@ -1,8 +1,10 @@
 package rocks.inspectit.ocelot.core.exporter;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import io.opencensus.exporter.trace.jaeger.JaegerTraceExporter;
 import io.opencensus.trace.Tracing;
 import io.opencensus.trace.samplers.Samplers;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import static org.awaitility.Awaitility.await;
         "inspectit.exporters.tracing.jaeger.url=http://127.0.0.1:14268/api/traces"
 })
 @DirtiesContext
+@Slf4j
 public class JaegerExporterServiceIntTest extends SpringTestBase {
 
     public static final int JAEGER_PORT = 14268;
@@ -43,12 +46,22 @@ public class JaegerExporterServiceIntTest extends SpringTestBase {
     }
 
     @Test
-    void verifyTraceSent() {
+    void verifyTraceSent() throws InterruptedException {
         Tracing.getTracer().spanBuilder("jaegerspan")
                 .setSampler(Samplers.alwaysSample())
                 .startSpanAndRun(() -> {
                 });
-        await().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> {
+
+        // Shutdown the export component to force a flush. This will cause problems if multiple tests
+        // are added in this class, but this is not the case for the moment.
+        Tracing.getExportComponent().shutdown();
+        JaegerTraceExporter.unregister();
+
+        log.info("Wait for Jaeger to process the span...");
+        long timeWaitingForSpansToBeExportedInMillis = 1100L;
+        Thread.sleep(timeWaitingForSpansToBeExportedInMillis);
+
+        await().atMost(15, TimeUnit.SECONDS).pollDelay(1, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(postRequestedFor(urlPathEqualTo(JAEGER_PATH)));
         });
     }
