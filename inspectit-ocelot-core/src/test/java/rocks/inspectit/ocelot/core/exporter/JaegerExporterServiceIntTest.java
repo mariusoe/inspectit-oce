@@ -4,10 +4,11 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import io.opencensus.exporter.trace.jaeger.JaegerTraceExporter;
 import io.opencensus.trace.Tracing;
 import io.opencensus.trace.samplers.Samplers;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import rocks.inspectit.ocelot.core.SpringTestBase;
@@ -22,8 +23,9 @@ import static org.awaitility.Awaitility.await;
         "inspectit.exporters.tracing.jaeger.url=http://127.0.0.1:14268/api/traces"
 })
 @DirtiesContext
-@Slf4j
 public class JaegerExporterServiceIntTest extends SpringTestBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(JaegerExporterServiceIntTest.class);
 
     public static final int JAEGER_PORT = 14268;
     public static final String JAEGER_PATH = "/api/traces";
@@ -57,7 +59,7 @@ public class JaegerExporterServiceIntTest extends SpringTestBase {
         Tracing.getExportComponent().shutdown();
         JaegerTraceExporter.unregister();
 
-        log.info("Wait for Jaeger to process the span...");
+        logger.info("Wait for Jaeger to process the span...");
         long timeWaitingForSpansToBeExportedInMillis = 1100L;
         Thread.sleep(timeWaitingForSpansToBeExportedInMillis);
 
