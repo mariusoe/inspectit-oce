@@ -14,7 +14,7 @@ commands:
   build_and_test_agent:
     steps:
       - run: cd repo && ./gradlew assemble
-      - run: cd repo && ./gradlew test
+      - run: cd repo && ./gradlew test -i
       - run: cd repo && ./gradlew systemTest
       - store_test_results:
           path: ~/inspectit/repo/inspectit-ocelot-agent/build/test-results
