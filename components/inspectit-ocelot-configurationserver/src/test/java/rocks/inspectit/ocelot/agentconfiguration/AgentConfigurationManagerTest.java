@@ -46,6 +46,8 @@ public class AgentConfigurationManagerTest {
                 .maxAgents(1000)
                 .build();
         configManager.init();
+
+        assertThat(true).isFalse();
     }
 
 
