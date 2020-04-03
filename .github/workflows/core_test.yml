@@ -3,7 +3,13 @@
 
 name: Test Core
 
-on: [pull_request]
+on:
+  pull_request:
+    paths:
+      - 'inspectit-ocelot-agent/**'
+      - 'inspectit-ocelot-bootstrap/**'
+      - 'inspectit-ocelot-config/**'
+      - 'inspectit-ocelot-core/**'
 
 jobs:
   test_zulu:
