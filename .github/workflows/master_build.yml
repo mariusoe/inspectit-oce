@@ -6,20 +6,19 @@ name: Test Core
 on: [pull_request]
 
 jobs:
-  build:
+  test_zulu:
 
     runs-on: ubuntu-latest
     
     strategy:
       matrix:
-        # test against latest update of each major Java version, as well as specific updates of LTS versions:
         java: [ 8.0.x, 9.0.x, 11.0.x ]
     
-    name: Java ${{ matrix.java }} sample
+    name: ZuluJDK ${{ matrix.java }}
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up JDK 1.8
+    - name: Set up JDK ${{ matrix.java }}
       uses: actions/setup-java@v1
       with:
         java-version: ${{ matrix.java }}
@@ -27,3 +26,17 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew :inspectit-ocelot-core:test
+
+  test_adoptjdk:
+    runs-on: ubuntu-latest
+    name: AdoptJDK 8
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up AdoptJDK 8
+        uses: joschi/setup-jdk@v1
+        with:
+          java-version: 8
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew :inspectit-ocelot-core:test
