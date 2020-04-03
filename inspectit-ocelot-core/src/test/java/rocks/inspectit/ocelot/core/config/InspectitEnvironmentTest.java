@@ -34,6 +34,8 @@ public class InspectitEnvironmentTest {
         InspectitEnvironment env = new InspectitEnvironment(ctx, Optional.of("I am not json but the config should be loaded anyway"));
         System.clearProperty("inspectit.service-name");
         assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("fromproperties");
+
+        assertThat(1).isEqualTo(2);
     }
 
 

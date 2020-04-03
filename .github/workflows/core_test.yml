@@ -1,0 +1,48 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: Test Core
+
+on:
+  pull_request:
+    paths:
+      - 'inspectit-ocelot-agent/**'
+      - 'inspectit-ocelot-bootstrap/**'
+      - 'inspectit-ocelot-config/**'
+      - 'inspectit-ocelot-core/**'
+
+jobs:
+  test_zulu:
+
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        java: [ 8.0.x, 9.0.x, 11.0.x ]
+    
+    name: ZuluJDK ${{ matrix.java }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK ${{ matrix.java }}
+      uses: actions/setup-java@v1
+      with:
+        java-version: ${{ matrix.java }}
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew :inspectit-ocelot-core:test
+
+  test_adoptjdk:
+    runs-on: ubuntu-latest
+    name: AdoptJDK 8
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up AdoptJDK 8
+        uses: joschi/setup-jdk@v1
+        with:
+          java-version: 8
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Build with Gradle
+        run: ./gradlew :inspectit-ocelot-core:test
