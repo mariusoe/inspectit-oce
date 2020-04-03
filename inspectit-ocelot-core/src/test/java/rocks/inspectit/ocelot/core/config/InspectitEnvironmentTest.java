@@ -9,6 +9,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  *
  */
@@ -21,7 +23,9 @@ public class InspectitEnvironmentTest {
     @Test
     public void testJsonAgentArguments() {
         InspectitEnvironment env = new InspectitEnvironment(ctx, Optional.of("{ \"inspectit\": { \"service-name\": \"unit-test\"}}"));
-        Assertions.assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("unit-test");
+        assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("unit-test");
+
+        assertThat(true).isFalse();
     }
 
     @Test
@@ -29,7 +33,7 @@ public class InspectitEnvironmentTest {
         System.setProperty("inspectit.service-name", "fromproperties");
         InspectitEnvironment env = new InspectitEnvironment(ctx, Optional.of("I am not json but the config should be loaded anyway"));
         System.clearProperty("inspectit.service-name");
-        Assertions.assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("fromproperties");
+        assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("fromproperties");
     }
 
 
@@ -38,6 +42,6 @@ public class InspectitEnvironmentTest {
         System.setProperty("inspectit.service-name", "abc");
         InspectitEnvironment env = new InspectitEnvironment(ctx, Optional.empty());
         System.clearProperty("inspectit.service-name");
-        Assertions.assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("abc");
+        assertThat(env.getCurrentConfig().getServiceName()).isEqualTo("abc");
     }
 }
