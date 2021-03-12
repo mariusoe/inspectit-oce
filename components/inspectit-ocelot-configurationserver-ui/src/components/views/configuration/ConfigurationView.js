@@ -13,6 +13,7 @@ import FileTree from './FileTree';
 import { enableOcelotAutocompletion } from './OcelotAutocompleter';
 import SearchDialog from './dialogs/SearchDialog';
 import ConfigurationSidebar from './ConfigurationSidebar';
+import Ajv from 'ajv';
 
 /**
  * The header component of the editor view.
@@ -244,9 +245,78 @@ class ConfigurationView extends React.Component {
   }
 }
 
+const scopeSchema = {
+  properties: {
+    type: {
+      type: "object",
+      properties: {
+        name: { type: "string" }
+      }
+    },
+    interfaces: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" }
+        }
+      }
+    },
+    methods: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          name: { type: "string" }
+        }
+      }
+    }
+  },
+};
+
+const actionSchema = {
+  properties: {
+    imports: {
+      type: "array",
+      items: {
+        type: "string"
+      }
+    },
+    input: {
+      type: "object"
+    }
+  },
+};
+
+const ruleSchema = {
+  properties: {
+    scopes: {
+      type: "object"
+    }
+  },
+};
+
+const ajv = new Ajv({ allErrors: true });
+const validateScopeSchema = ajv.compile(scopeSchema)
+const validateActionSchema = ajv.compile(actionSchema)
+const validateRulesSchema = ajv.compile(ruleSchema)
+
 const getYamlError = (content) => {
   try {
-    yaml.safeLoad(content);
+    const yamlObject = yaml.safeLoad(content);
+
+    // validate scopes
+    const scopes = _.get(yamlObject, 'inspectit.instrumentation.scopes');
+    _.forEach(scopes, validateScope);
+
+    // validate actions
+    const actions = _.get(yamlObject, 'inspectit.instrumentation.actions');
+    _.forEach(actions, validateAction);
+
+    // validate rules
+    const rules = _.get(yamlObject, 'inspectit.instrumentation.rules');
+    _.forEach(rules, validateRules);
+
     return null;
   } catch (error) {
     if (error.message) {
@@ -254,6 +324,30 @@ const getYamlError = (content) => {
     } else {
       return 'YAML cannot be parsed.';
     }
+  }
+};
+
+const validateScope = (scope, name) => {
+  const valid = validateScopeSchema(scope)
+  if (!valid) {
+    const errorText = ajv.errorsText(validateScopeSchema.errors).substr(5);
+    throw new Error("Invalid scope '" + name + "' - " + errorText); 
+  }
+};
+
+const validateAction = (action, name) => {
+  const valid = validateActionSchema(action)
+  if (!valid) {
+    const errorText = ajv.errorsText(validateActionSchema.errors).substr(5);
+    throw new Error("Invalid action '" + name + "' - " + errorText);
+  }
+};
+
+const validateRules = (action, name) => {
+  const valid = validateRulesSchema(action)
+  if (!valid) {
+    const errorText = ajv.errorsText(validateRulesSchema.errors).substr(5);
+    throw new Error("Invalid rule '" + name + "' - " + errorText);
   }
 };
 
